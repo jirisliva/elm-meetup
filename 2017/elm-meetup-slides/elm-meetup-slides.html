@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Elm |> Real Life</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      /*
+      body { font-family: 'Ubuntu Condensed'; }
+      body { font-family: 'Source Sans Pro'; }
+      */
+      body { font-family: 'PT Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      .title-slide {
+        background-image: url('files/background.png');
+      }
+
+      img[alt=newired-logo] { width: 300px; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle, title-slide
+
+#`Elm |> Real Life`
+
+`jiri.sliva@newired.com`
+
+![newired-logo](files/logo1.png)
+---
+# Jak členit velkou Elm aplikaci na menší části
+
+- Model - desítky typů
+- Messages + Update funkce - desítky message typů a Update funkcí
+- Views - desítky funkcí
+
+![Elm Architecture](files/elm-architecture.svg)
+---
+
+# 1. Maximálně odělit části aplikace
+Každá "komponenta" v jednom Elm modulu s vlastním
+- Modelem
+- Messages + update funkce
+- Views funkce
+
+```elm
+-- Login.elm                               -- Project.elm                           
+                                           
+type alias Model =                         type alias Model =
+    { username : String                        { name : String
+    , password : String                        , active : Bool
+    }                                          }
+                                           
+type `Msg`                                   type `Msg`
+    = EnterName String                         = SetName String
+    | EnterPass String                         | Activate Bool
+                                           
+update : `Msg` -> Model -> Model             update : `Msg` -> Model -> Model
+..                                         ..
+                                           
+view : Model -> Html `Msg`                   view : Model -> Html `Msg`
+..                                         ..
+```
+---
+- Model se skládá z dílčích sub-modelů komponent.
+- update funkce převolává update funkce komponent.
+- Messages komponent se mapují na Msg typ z Main.elm.
+
+```elm
+-- Main.elm
+
+import Login
+import Project
+
+type alias Model =                    
+    { login : Login.Model
+    , projects : List Project.Model               
+    }                                 
+                                      
+type Msg                              
+    = LoginMsg Login.Msg
+    | ProjectMsg Project.Msg
+                                      
+update : Msg -> Model -> Model        
+update msg model =
+  case msg of 
+	LoginMsg loginMsg ->
+	  { model | login = `Login.update loginMsg model.login` }
+    ..
+                                      
+                                      
+view : Model -> Html Msg   <-------------------------+
+view model =                                         | different Msg types
+  ..                                                 |
+  Html.map LoginMsg (`Login.view model.login`)  <------+
+
+```
+
+
+---
+
+# Přínosy
+- Kód je lépe znovupoužitený.
+- Kód je nezávislý na ostatních částech aplikace.
+
+# Nevýhody
+- Mapování zpráv a updatů z "parenta" na "child"
+- Update "parent" modelu z "child" update funkce 
+
+---
+
+
+# 2. "As flat as possible"
+
+```elm
+-- Model.elm                               -- Msg.elm
+ 
+type alias Login =                         type Msg 
+     { username : String                       = LoginMsg LoginMsg
+     , password : String                       | ProjectMsg ProjectMsg          
+     }                                        
+                                            type LoginMsg                
+type alias Project =                           = EnterName String
+     { name : String                           | EnterPass String  
+     , active : Bool                                    
+     }                                      type ProjectMsg
+                                               = SetName String
+type alias Model =                             | Activate Bool
+     { login : Login
+     , projects : List Projects
+     }
+```
+---
+
+```elm
+-- View/Login.elm                          -- View/Project.elm                           
+
+import Msg exposing (Msg(..))              import Msg exposing (Msg(..))
+import Model exposing (Login)              import Model exposing (Project)
+                                           
+view : Login -> Html Msg                   view : Project -> Html Msg
+..                                         ..
+```
+
+```elm
+-- Update.elm
+
+update : Msg -> Model -> Model
+update msg model =
+  case msg of
+    LoginMsg loginMsg ->
+        { model | login = (LoginUpdate.update loginMsg model.login) }
+    ..
+
+```
+---
+
+# Přínosy
+- Jednodušší kód - žádné mapování
+- Odpadá problém updatů Child -> Parent
+
+# Nevýhody
+- Kompaktní kód není bez refactoru možné použít jinde.
+
+# Závěr
+- Oddělovat typy Messages jen v případě "obecných" komponent (např. datepicker).
+- Nevynucovat si OOP přístup za každou cenu. Místo snahy vytvářet znovupoužitelné _komponenty_ psát znovupoužitelné _view funkce_. 
+
+
+---
+
+# Problémy, a jak jsme je vyřešili
+- VDOM a omezení která s něj vyplývají.
+  - Není možné manipulovat s elementy generovanými VDOMem. Změny mohou být kdykoliv ztraceny.
+    (včetně přidávání evet listeneru)
+  - Nemá smysl ukládat si reference na elementy. Po příšním renderu DOMu můžou být reference úplně jiné.
+
+- Z Elmu není přímo dostupné JS API elementů.
+  - Porty - asynchronní volání může komplikovat logiku aplikace
+  - Native module - riziko zavlečení chyby a ztráta stability Elmu
+
+---
+## Náš příklad - webview (Electron)
+1. Životní cyklus webviews řešený kompletně v JavaScriptu a porty komunikovat s Elmem.
+  Nevýhoda: Kritická část _stavu_ chybí v modelu Elm aplikace.
+2. Životní cyklus webviews řízený v Elmu. Pro volání JS API napsat Native module.
+       Ani jsme to nezkoušeli. :-)
+3. Životni cyklus webviews řízený v Elmu. Pro volání JS API používat porty.
+
+![](files/VDOM.svg)
+
+---
+# Co chybí
+## IDE/Editor
+  - **Atom** - Skvělá podpora Elmu. Pomalý, _náladový_ editor.
+  - **VS Code** - Základní podpora Elmu (velmi nedokonalé _go to definition_)
+  - **IntelliJ IDEA** - Základní podpora Elmu (nevolá kompilátor).
+  - **Sublime Text** - Slušná podpora Elmu - Vývoj editoru se pravděpobně zastavil.
+  - **LightTable** - Skvělá podpora Elmu - autorem opuštěný projekt (komunita se nezdá být příliš aktivní)
+  - **Vim** ;-)
+---
+# Co chybí
+## Debugger
+  - Default - skvěká věc pro testing. Málo features pro debugging.
+  - `github.com/jinjor/elm-time-travel` - Lepší pro debugging (alfa).
+
+## Privátní package
+Dnes jsou možné pouze veřejné balíky přes github (Elm 0.19?)
+
+---
+# Co dělá radost - Platforma
+
+- Rychlý vývoj. Je snadné začít s prototypem a pak refaktorovat a pridávat další věci.
+
+- Bezproblémový refactoring
+  - Nejen díky statickému typování, ale také díky jedinému _místu_ kde leží stav.
+
+- _No runtime errors_ - legenda je nelže :)
+
+- Radost! Čistě funkcionální jazyk ve spojení s _Elm Architecture_ působí velmi přirozeně (Event -> Update -> View).
+  - Elm může posloužit jako vstupní jazyk do funcionáního světa.
+  - Dnes už bych se neobával použít čistě funkcionální jazyk i pro backend (Elixir?)
+
+- Hodně částí, které jsme plánovali psát JavaScriptu jsme nakonec přepsali do Elmu.
+- HTML to Elm - něco co vypadá jako hříčka dokáže ušetřit hodně času.
+
+---
+# Co dělá radost - Adaptace
+
+- Vyvojář bez předchozí zkušenosti s funkcionálními jazyky byl schopen psát produkční kód po 3 týdnech.
+- Elm komunita (např. na Slacku) je _velmi_ vstřícná k začátečníkům.
+
+    </textarea>
+    <!-- <script src="https://remarkjs.com/downloads/remark-latest.min.js"> -->
+    <script src="files/remark-latest.min.js">
+    </script>
+    <script>
+    var slideshow = remark.create( {
+        highlightLines: true,
+        highlightSpans: true
+      });
+    </script>
+  </body>
+</html>

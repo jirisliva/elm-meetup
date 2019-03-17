@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Elm |> Real Life</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      .frontpage {
+      }
+      img[alt=newired-logo] { width: 300px; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Elm |> Real Life
+
+`jiri.sliva@newired.com`
+
+![newired-logo](files/logo1.png)
+---
+# Elm - Languange
+### Only pure functions
+### Immutable data
+### Syntax - ML family (_Haskel for kids_)
+```elm
+view : List Article -> Html Msg
+view articles =
+    let
+        viewArticle article =
+            Html.div [class “article” ] [ text article.title ]
+    in
+        Html.ul 
+            [class “article-list”] 
+            (List.map viewArticle articles)
+```
+---
+# Model -> Update -> View
+<br>
+<br>
+<br>
+.center[![Model-Update-View](files/elm-architecture.svg)]
+---
+# Tooling
+
+* **elm-format** - Accepted widelly by Elm community (all packages has same format)
+
+* **Elm Analyse** - Static code analyse
+
+* **Elm Debugger** - Integrated debugger. Just compile with `--debug`
+
+* **elm-monitor** - Monitor your elm program with redux-devtools
+
+* **IDEs plugins**
+  - IntelliJ IDEA
+  - Visual Studio Code
+  - Atom
+  - Vim
+
+    </textarea>
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create({ratio: "4:3"});
+    </script>
+  </body>
+</html>
+
