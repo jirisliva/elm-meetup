@@ -1,0 +1,20 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Main</title>
+  <script src="main.js"></script>
+</head>
+
+<body>
+  <div id="elm"></div>
+  <script>
+    import monitor from 'elm-monitor'; 
+    monitor();
+
+    var app = Elm.Main.init({
+    node: document.getElementById('elm')
+  });
+  </script>
+</body>
+</html>

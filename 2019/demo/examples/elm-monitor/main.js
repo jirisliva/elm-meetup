@@ -1,13 +1,3 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Main</title>
-</head>
-
-<body>
-<div id="elm-f0111bc4e658d0f98db96260c16f7e49"></div>
-<script>
 (function(scope){
 'use strict';
 
@@ -6122,6 +6112,22 @@ var author$project$Main$view = function (model) {
 		title: 'Demo'
 	};
 };
+var elm$core$Debug$log = _Debug_log;
+var author$project$Monitor$init = F2(
+	function (initializer, flags) {
+		var result = initializer(flags);
+		var _n0 = A2(elm$core$Debug$log, '[Monitor:init]', result.a);
+		return result;
+	});
+var author$project$Monitor$update = F3(
+	function (updater, message, model) {
+		var result = A2(updater, message, model);
+		var _n0 = A2(
+			elm$core$Debug$log,
+			'[Monitor:update]',
+			_Utils_Tuple2(message, result.a));
+		return result;
+	});
 var elm$browser$Browser$External = function (a) {
 	return {$: 'External', a: a};
 };
@@ -6324,16 +6330,16 @@ var elm$url$Url$fromString = function (str) {
 		A2(elm$core$String$dropLeft, 8, str)) : elm$core$Maybe$Nothing);
 };
 var elm$browser$Browser$document = _Browser_document;
-var author$project$Main$main = elm$browser$Browser$document(
+var author$project$Monitor$document = function (config) {
+	return elm$browser$Browser$document(
+		_Utils_update(
+			config,
+			{
+				init: author$project$Monitor$init(config.init),
+				update: author$project$Monitor$update(config.update)
+			}));
+};
+var author$project$Main$main = author$project$Monitor$document(
 	{init: author$project$Main$init, subscriptions: author$project$Main$subscriptions, update: author$project$Main$update, view: author$project$Main$view});
 _Platform_export({'Main':{'init':author$project$Main$main(
 	elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));
-
-var app = Elm.Main.init({ node: document.getElementById("elm-f0111bc4e658d0f98db96260c16f7e49") });
-if (document.getElementById("elm-f0111bc4e658d0f98db96260c16f7e49"))
-{
-  document.getElementById("elm-f0111bc4e658d0f98db96260c16f7e49").innerText = 'This is a headless program, meaning there is nothing to show here.\n\nI started the program anyway though, and you can access it as `app` in the developer console.';
-}
-</script>
-</body>
-</html>

@@ -1,11 +1,10 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Browser
 import Html exposing (..)
+import Html.Attributes exposing (type_)
 import Html.Events exposing (..)
-
-
--- MAIN
+import Json.Decode
 
 
 main =
@@ -16,10 +15,6 @@ main =
         }
 
 
-
--- MODEL
-
-
 type alias Model =
     { greetings : String
     }
@@ -27,11 +22,8 @@ type alias Model =
 
 init : Model
 init =
-    Model "Hello World"
-
-
-
--- UPDATE
+    { greetings = "Hello World"
+    }
 
 
 type Msg
@@ -41,10 +33,6 @@ type Msg
 update : Msg -> Model -> Model
 update msg model =
     model
-
-
-
--- VIEW
 
 
 view : Model -> Html Msg

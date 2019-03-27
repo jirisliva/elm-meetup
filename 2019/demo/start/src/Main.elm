@@ -1,7 +1,10 @@
-module Main exposing (Model, Msg(..), init, main, update, view)
+module Main exposing (main)
 
 import Browser
 import Html exposing (..)
+import Html.Attributes exposing (type_)
+import Html.Events exposing (..)
+import Json.Decode
 
 
 main =
@@ -19,7 +22,8 @@ type alias Model =
 
 init : Model
 init =
-    Model "Hello World"
+    { greetings = "Hello World"
+    }
 
 
 type Msg
