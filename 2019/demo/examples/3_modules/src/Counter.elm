@@ -1,4 +1,4 @@
-module Counter exposing (Model, Msg, init, update, view)
+module Counter exposing (ExternalMsg(..), Model, Msg, init, update, view)
 
 import Html exposing (Html, button, div, h2, text)
 import Html.Events exposing (onClick)
@@ -14,19 +14,24 @@ type Msg
     | Decrease
 
 
+type ExternalMsg
+    = Close
+    | Save
+
+
 init : Model
 init =
     Model 0
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, ExternalMsg )
 update msg model =
     case msg of
         Increase ->
-            { model | counter = model.counter + 1 }
+            ( { model | counter = model.counter + 1 }, Close )
 
         Decrease ->
-            { model | counter = model.counter - 1 }
+            ( { model | counter = model.counter - 1 }, Save )
 
 
 view : Model -> Html Msg

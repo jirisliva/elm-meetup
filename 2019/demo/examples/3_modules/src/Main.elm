@@ -21,7 +21,9 @@ type alias Model =
 
 init : Model
 init =
-    Model "Hello World" Counter.init
+    { greetings = "Hello World"
+    , counter = Counter.init
+    }
 
 
 type Msg
@@ -36,7 +38,11 @@ update msg model =
             model
 
         CounterMsg subMsg ->
-            { model | counter = Counter.update subMsg model.counter }
+            let
+                ( subModel, externalMsg ) =
+                    Counter.update subMsg model.counter
+            in
+            { model | counter = subModel }
 
 
 view : Model -> Html Msg
